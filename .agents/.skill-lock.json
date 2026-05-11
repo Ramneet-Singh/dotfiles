@@ -149,6 +149,33 @@
       "skillFolderHash": "3013fdeb8a11b10b1eb795ec3ae8bfca38f7c26d",
       "installedAt": "2026-05-11T14:06:05.612Z",
       "updatedAt": "2026-05-11T14:06:05.612Z"
+    },
+    "ruff": {
+      "source": "astral-sh/claude-code-plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/astral-sh/claude-code-plugins.git",
+      "skillPath": "plugins/astral/skills/ruff/SKILL.md",
+      "skillFolderHash": "46e64350889df1af25113df450999101f48fd744",
+      "installedAt": "2026-05-11T14:29:08.708Z",
+      "updatedAt": "2026-05-11T14:29:08.708Z"
+    },
+    "ty": {
+      "source": "astral-sh/claude-code-plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/astral-sh/claude-code-plugins.git",
+      "skillPath": "plugins/astral/skills/ty/SKILL.md",
+      "skillFolderHash": "723536a590532587a37768a7227cf8ce52399542",
+      "installedAt": "2026-05-11T14:29:08.713Z",
+      "updatedAt": "2026-05-11T14:29:08.713Z"
+    },
+    "uv": {
+      "source": "astral-sh/claude-code-plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/astral-sh/claude-code-plugins.git",
+      "skillPath": "plugins/astral/skills/uv/SKILL.md",
+      "skillFolderHash": "bca0368b210d4b3ce04b4895829afe0dbc6949a8",
+      "installedAt": "2026-05-11T14:29:08.714Z",
+      "updatedAt": "2026-05-11T14:29:08.714Z"
     }
   },
   "dismissed": {
