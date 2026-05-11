@@ -41,7 +41,11 @@ install_vim_runtime() {
 install_nvm() {
     if [ ! -d "$HOME/.nvm" ]; then
         if ask "Install nvm (Node Version Manager)?"; then
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+            local nvm_tag
+            nvm_tag=$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest \
+                | grep -m1 '"tag_name"' | cut -d '"' -f 4)
+            nvm_tag="${nvm_tag:-master}"   # fall back to master if API call failed
+            curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_tag}/install.sh" | bash
             # Load nvm into the current shell so subsequent installers (npm) work
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -94,6 +98,7 @@ doIt() {
         --exclude ".macos" \
         --exclude "bootstrap.sh" \
         --exclude "brew.sh" \
+        --exclude "update.sh" \
         --exclude "Brewfile*" \
         --exclude "README.md" \
         --exclude "LICENSE-MIT.txt" \
@@ -127,8 +132,11 @@ doIt() {
     install_claude_code   # Claude Code
     install_miniconda_note
 
-    # 6) Reload login shell
-    exec zsh -l
+    # 6) Reload login shell (skipped when sourced from update.sh,
+    #    which sets DOTFILES_NO_RELOAD=1 to keep its own process alive)
+    if [ -z "$DOTFILES_NO_RELOAD" ]; then
+        exec zsh -l
+    fi
 }
 
 if [ "$1" == "--force" ] || [ "$1" == "-f" ]; then

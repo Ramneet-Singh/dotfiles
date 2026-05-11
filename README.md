@@ -28,8 +28,33 @@ source bootstrap.sh
 $EDITOR ~/.extra
 ```
 
-To update later, just `cd ~/dotfiles && source bootstrap.sh`. Add `-f` to skip
-the confirmation prompt.
+## Updating an already-set-up machine
+
+```bash
+cd ~/dotfiles
+./update.sh -f      # -f skips the confirmation prompt
+exec zsh -l         # pick up any shell config changes
+```
+
+`update.sh` is idempotent and skips tools that aren't installed. It does, in
+order:
+
+1. `git pull origin main` — get the latest dotfiles + Brewfile
+2. `./brew.sh` — `brew update` + `brew bundle` + `brew cleanup`
+3. Upgrade non-brew tools to their latest versions:
+   - **oh-my-zsh** via `~/.oh-my-zsh/tools/upgrade.sh`
+   - **vim_runtime** fork via `git pull --ff-only`
+   - **nvm** via `git fetch --tags && git checkout <latest>` (per nvm's manual-upgrade docs)
+   - **uv** via `uv self update`
+   - **GitHub Copilot CLI** via `npm install -g @github/copilot@latest`
+   - **Claude Code** by re-running `claude.ai/install.sh`
+4. `source bootstrap.sh -f` (with `DOTFILES_NO_RELOAD=1`) — rsyncs the latest
+   dotfiles into `$HOME`/`~/.config/` and runs the `install_*` helpers (a no-op
+   for already-installed tools, but picks up anything new that's been added to
+   `bootstrap.sh` since the last update).
+
+Node itself isn't auto-bumped (LTS jumps can break globals/projects); run
+`nvm install --lts` manually when you want a newer node.
 
 ## Layout
 
@@ -39,6 +64,7 @@ dotfiles/
 ├── LICENSE-MIT.txt
 ├── bootstrap.sh           # rsync repo → $HOME, install oh-my-zsh + vim_runtime + nvm
 ├── brew.sh                # install Homebrew + run `brew bundle`
+├── update.sh              # upgrade brew + non-brew tools, resync dotfiles
 ├── Brewfile               # declarative formulae & casks list
 │
 │  ── shell (zsh primary, bash kept as fallback) ──
@@ -76,8 +102,9 @@ dotfiles/
   `zsh-autosuggestions` and `zsh-syntax-highlighting` are installed via brew
   (see Brewfile) and sourced directly from `/opt/homebrew/share/` in
   `.zshrc` — NOT loaded as oh-my-zsh custom plugins, so brew handles updates.
-- **nvm + node versions**: bootstrap.sh prompts to install nvm (v0.40.4) then
-  optionally `nvm install --lts`. Per-project switching via `nvm use`.
+- **nvm + node versions**: bootstrap.sh prompts to install nvm (latest release
+  tag, fetched from the GitHub API) then optionally `nvm install --lts`.
+  Per-project switching via `nvm use`.
 - **uv** (Astral's Python package manager): bootstrap.sh prompts to install
   via the official `astral.sh/uv/install.sh` script (puts `uv` + `uvx` in
   `~/.local/bin/`).
