@@ -1,0 +1,11 @@
+# Personal aliases (zsh + bash compatible).
+
+# Run a non-native (x86_64) Homebrew via Rosetta. Useful for formulae that
+# don't yet have arm64 bottles.
+alias brewr="arch -x86_64 /usr/local/bin/brew"
+
+# Run any command emulated by Rosetta.
+alias leg="arch -x86_64"
+
+# Compile C++ with C++20 + libc++.
+alias cppcompile='c++ -std=c++20 -stdlib=libc++'

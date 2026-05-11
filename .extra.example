@@ -1,0 +1,19 @@
+# ~/.extra.example — copy this file to ~/.extra and fill in real values.
+# ~/.extra is gitignored; it holds machine-local secrets (git identity,
+# API tokens, work-only aliases) that must NEVER be committed.
+
+# --- Git identity ---
+GIT_AUTHOR_NAME="Your Name"
+GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+git config --global user.name "$GIT_AUTHOR_NAME"
+
+GIT_AUTHOR_EMAIL="you@example.com"
+GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.email "$GIT_AUTHOR_EMAIL"
+
+export GIT_AUTHOR_NAME GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL
+
+# --- Examples of what else lives here ---
+# export OPENAI_API_KEY=sk-…
+# export GITHUB_TOKEN=ghp_…
+# alias work-vpn='openconnect work.example.com'

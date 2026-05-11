@@ -1,0 +1,5 @@
+# Environment variables that don't fit in .zshenv (which is loaded by every
+# zsh invocation including scripts; keep that minimal). This file is sourced
+# by interactive shells (.zshrc / .bash_profile).
+
+# (intentionally empty for now — add LANG, HISTSIZE, etc. as needs arise)

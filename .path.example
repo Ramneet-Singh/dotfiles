@@ -1,0 +1,6 @@
+# ~/.path.example — copy this file to ~/.path and add machine-specific
+# PATH entries. ~/.path is gitignored.
+
+# Examples:
+# export PATH="$HOME/.local/bin:$PATH"
+# export PATH="/opt/myapp/bin:$PATH"

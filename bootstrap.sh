@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+#
+# bootstrap.sh — provision dotfiles + tools brew can't install.
+#
+# Run AFTER `./brew.sh`. Idempotent — safe to re-run.
+#
+# Usage:
+#   source bootstrap.sh         # interactive (asks before touching $HOME)
+#   source bootstrap.sh -f      # skip confirmation prompt
+
+set -e
+cd "$(dirname "${BASH_SOURCE}")"
+
+# Fast-forward if it's a real git repo
+if [ -d .git ]; then
+    git pull origin main || true
+fi
+
+# --- helpers ---
+have() { command -v "$1" >/dev/null 2>&1; }
+ask()  { read -p "$1 (y/n) " -n 1 -r; echo ""; [[ $REPLY =~ ^[Yy]$ ]]; }
+
+install_oh_my_zsh() {
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "Installing oh-my-zsh…"
+        RUNZSH=no KEEP_ZSHRC=yes \
+            sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+    # Custom plugins used by .zshrc's plugins=(...) list
+    local custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+    [ -d "$custom/plugins/zsh-autosuggestions" ] || \
+        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions      "$custom/plugins/zsh-autosuggestions"
+    [ -d "$custom/plugins/zsh-syntax-highlighting" ] || \
+        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting  "$custom/plugins/zsh-syntax-highlighting"
+}
+
+install_vim_runtime() {
+    if [ ! -d "$HOME/.vim_runtime" ]; then
+        echo "Cloning vim_runtime fork…"
+        git clone --depth 1 https://github.com/Ramneet-Singh/vimrc.git "$HOME/.vim_runtime"
+    fi
+}
+
+install_nvm() {
+    if [ ! -d "$HOME/.nvm" ]; then
+        if ask "Install nvm (Node Version Manager)?"; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        fi
+    fi
+}
+
+install_miniconda_note() {
+    if [ ! -d "/opt/homebrew/Caskroom/miniconda/base" ] && [ ! -d "/usr/local/Caskroom/miniconda/base" ]; then
+        echo "(miniconda not installed — install via 'brew install --cask miniconda' if you want it)"
+    fi
+}
+
+doIt() {
+    # 1) Top-level dotfiles → $HOME (excludes repo metadata, scripts, configs handled separately)
+    rsync \
+        --exclude ".git/" \
+        --exclude ".DS_Store" \
+        --exclude ".macos" \
+        --exclude "bootstrap.sh" \
+        --exclude "brew.sh" \
+        --exclude "Brewfile*" \
+        --exclude "README.md" \
+        --exclude "LICENSE-MIT.txt" \
+        --exclude "config/" \
+        --exclude "bin/" \
+        --exclude "*.example" \
+        -avh --no-perms . ~
+
+    # 2) XDG configs → ~/.config/
+    if [ -d config ]; then
+        mkdir -p ~/.config
+        rsync -avh --no-perms config/ ~/.config/
+    fi
+
+    # 3) Personal scripts → ~/bin/
+    if [ -d bin ]; then
+        mkdir -p ~/bin
+        rsync -avh --no-perms bin/ ~/bin/
+    fi
+
+    # 4) Seed local-only files from templates if missing
+    [ -f ~/.extra ] || { cp .extra.example ~/.extra; echo "Created ~/.extra — edit it to add your git identity & secrets."; }
+    [ -f ~/.path  ] || cp .path.example  ~/.path
+
+    # 5) Tools brew can't install
+    install_oh_my_zsh
+    install_vim_runtime
+    install_nvm
+    install_miniconda_note
+
+    # 6) Reload login shell
+    exec zsh -l
+}
+
+if [ "$1" == "--force" ] || [ "$1" == "-f" ]; then
+    doIt
+else
+    read -p "This may overwrite existing files in your home directory. Are you sure? (y/n) " -n 1
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        doIt
+    fi
+fi
+unset doIt

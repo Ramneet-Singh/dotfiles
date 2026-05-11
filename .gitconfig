@@ -1,0 +1,13 @@
+; .gitconfig — committed without [user]; identity goes in ~/.extra (gitignored)
+
+[credential]
+	helper = osxkeychain
+
+[core]
+	excludesfile = ~/.gitignore_global
+
+[pull]
+	ff = only
+
+[init]
+	defaultBranch = master
