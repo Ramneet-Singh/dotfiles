@@ -90,6 +90,44 @@ install_miniconda_note() {
     fi
 }
 
+# Symlink ~/.agents/{skills,.skill-lock.json} → repo so the dotfiles repo IS
+# the source of truth, and `npx skills add/update/remove` writes through to
+# the repo. Also recreates ~/.claude/skills/<name> symlinks (claude code reads
+# from .claude, every other agent reads from .agents). Idempotent — safe to
+# re-run; backs up any pre-existing real dirs/files instead of clobbering.
+install_skills() {
+    local repo_skills="$PWD/.agents/skills"
+    local repo_lock="$PWD/.agents/.skill-lock.json"
+    [ -d "$repo_skills" ] || return 0   # nothing tracked yet
+
+    mkdir -p "$HOME/.agents" "$HOME/.claude/skills"
+
+    # ~/.agents/skills → repo
+    if [ -e "$HOME/.agents/skills" ] && [ ! -L "$HOME/.agents/skills" ]; then
+        local backup="$HOME/.agents/skills.bak.$(date +%Y%m%d-%H%M%S)"
+        echo "Backing up existing ~/.agents/skills → $backup"
+        mv "$HOME/.agents/skills" "$backup"
+    fi
+    ln -snf "$repo_skills" "$HOME/.agents/skills"
+
+    # ~/.agents/.skill-lock.json → repo
+    if [ -f "$repo_lock" ]; then
+        if [ -e "$HOME/.agents/.skill-lock.json" ] && [ ! -L "$HOME/.agents/.skill-lock.json" ]; then
+            mv "$HOME/.agents/.skill-lock.json" "$HOME/.agents/.skill-lock.json.bak.$(date +%Y%m%d-%H%M%S)"
+        fi
+        ln -snf "$repo_lock" "$HOME/.agents/.skill-lock.json"
+    fi
+
+    # ~/.claude/skills/<name> → ../../.agents/skills/<name>
+    # (matches what `npx skills` creates when claude-code is one of the targets)
+    local skill_dir name
+    for skill_dir in "$repo_skills"/*/; do
+        [ -d "$skill_dir" ] || continue
+        name=$(basename "$skill_dir")
+        ln -snf "../../.agents/skills/$name" "$HOME/.claude/skills/$name"
+    done
+}
+
 doIt() {
     # 1) Top-level dotfiles → $HOME (excludes repo metadata, scripts, configs handled separately)
     rsync \
@@ -104,6 +142,7 @@ doIt() {
         --exclude "LICENSE-MIT.txt" \
         --exclude "config/" \
         --exclude "bin/" \
+        --exclude ".agents/" \
         --exclude "*.example" \
         -avh --no-perms . ~
 
@@ -130,6 +169,7 @@ doIt() {
     install_uv            # Astral's Python package manager
     install_copilot_cli   # GitHub Copilot CLI (needs npm; nvm-installed node provides it)
     install_claude_code   # Claude Code
+    install_skills        # symlink ~/.agents/{skills,.skill-lock.json} → this repo
     install_miniconda_note
 
     # 6) Reload login shell (skipped when sourced from update.sh,

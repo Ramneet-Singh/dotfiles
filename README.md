@@ -48,6 +48,8 @@ order:
    - **uv** via `uv self update`
    - **GitHub Copilot CLI** via `npm install -g @github/copilot@latest`
    - **Claude Code** by re-running `claude.ai/install.sh`
+   - **AI agent skills** via `npx skills update` (writes through the symlinks
+     into `.agents/`; commit the resulting diff to persist)
 4. `source bootstrap.sh -f` (with `DOTFILES_NO_RELOAD=1`) — rsyncs the latest
    dotfiles into `$HOME`/`~/.config/` and runs the `install_*` helpers (a no-op
    for already-installed tools, but picks up anything new that's been added to
@@ -86,9 +88,50 @@ dotfiles/
 ├── .gitignore_global      # core.excludesfile target
 ├── .gitignore             # ignored INSIDE the repo (DS_Store, *.pyc, .extra, .path)
 ├── .gitattributes
-└── config/                # rsynced into ~/.config/
-    └── gh/                # GitHub CLI config (no auth tokens — those live in macOS keychain)
+├── config/                # rsynced into ~/.config/
+│   └── gh/                # GitHub CLI config (no auth tokens — those live in macOS keychain)
+│
+│  ── AI agent skills (symlinked, NOT rsynced — see "AI agent skills" below) ──
+└── .agents/
+    ├── .skill-lock.json   # vercel-labs/skills CLI's manifest of installed skills
+    └── skills/            # one dir per skill (SKILL.md + optional resources)
 ```
+
+## AI agent skills
+
+Skills are installed via [`npx skills`](https://github.com/vercel-labs/skills)
+(the vercel-labs CLI). Most coding agents (Copilot CLI, Codex, Cursor, Cline,
+…) read from `~/.agents/skills/`; Claude Code reads from `~/.claude/skills/`.
+
+To make the dotfiles repo the **single source of truth** for both — and to get
+edits flowing in both directions automatically — `bootstrap.sh` symlinks:
+
+```
+~/.agents/skills           → $DOTFILES/.agents/skills           (whole tree)
+~/.agents/.skill-lock.json → $DOTFILES/.agents/.skill-lock.json
+~/.claude/skills/<name>    → ../../.agents/skills/<name>        (per skill — same scheme `npx skills` uses for symlink installs)
+```
+
+So the workflow is:
+
+| Action                                       | What happens                                                                              |
+|----------------------------------------------|-------------------------------------------------------------------------------------------|
+| Edit `dotfiles/.agents/skills/X/SKILL.md`    | Instantly visible to every agent. `git add && git commit` to persist.                     |
+| `npx skills add <repo>`                      | Writes through the symlinks → new files land in `dotfiles/.agents/`. Commit the diff.     |
+| `npx skills update [name]`                   | Same — diff appears in `dotfiles/.agents/`. Commit to share across machines.              |
+| `npx skills remove <name>`                   | Same — deletion appears in `dotfiles/.agents/`. Commit.                                   |
+| Fresh Mac (`bootstrap.sh`)                   | Re-creates the three symlink groups above pointing at the freshly-cloned repo.            |
+
+Personal tweaks to upstream skills are just commits in `dotfiles/.agents/`. To
+revert a tweak back to the upstream version, delete it from the repo and run
+`npx skills update <name>` (it'll re-fetch from the source recorded in
+`.skill-lock.json`).
+
+**Recovery:** if `~/.agents/.skill-lock.json` ever ends up as a regular file
+instead of a symlink (some tools do atomic write-temp-then-rename), re-run
+`./bootstrap.sh -f` — `install_skills` is idempotent and re-asserts the
+symlinks. Same one-liner manually:
+`ln -snf $PWD/.agents/.skill-lock.json ~/.agents/.skill-lock.json`.
 
 ## What's NOT in here (and where it lives)
 
@@ -114,6 +157,24 @@ dotfiles/
   `~/.local/share/claude/` with a symlink in `~/.local/bin/`).
 - **miniconda & conda envs**: cask in Brewfile installs miniconda; envs are
   per-project (`conda create -n NAME …`).
+
+## What gets rsynced and what doesn't
+
+`bootstrap.sh` rsyncs the repo root into `$HOME` with a fixed exclude list.
+Files NOT in the exclude list land in `$HOME/<filename>`. Excluded entries:
+
+- **Repo metadata / scripts**: `.git/`, `.DS_Store`, `.macos`, `bootstrap.sh`,
+  `brew.sh`, `update.sh`, `Brewfile*`, `README.md`, `LICENSE-MIT.txt`,
+  `*.example`
+- **Handled by their own rsync passes**: `config/` → `~/.config/`,
+  `bin/` → `~/bin/`
+- **Symlinked instead of rsynced**: `.agents/` (set up by `install_skills`;
+  see "AI agent skills" above)
+
+If you're adding a new file, decide which bucket it belongs in:
+top-level (rsynced into `$HOME`), under `config/` (rsynced into `~/.config/`),
+under `bin/` (rsynced into `~/bin/`), or under `.agents/` (symlinked into
+`~/.agents/`). Then make sure the rsync excludes in `bootstrap.sh` agree.
 
 ## How the shell startup is split (Mathias's pattern, adapted for zsh)
 
