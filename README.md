@@ -75,8 +75,15 @@ dotfiles/
 - **oh-my-zsh + plugins**: installed by `bootstrap.sh` (its own installer +
   git-cloned `zsh-autosuggestions` & `zsh-syntax-highlighting` into
   `~/.oh-my-zsh/custom/plugins/`).
-- **nvm + node versions**: bootstrap.sh prompts to install nvm; node versions
-  are installed per-project via `nvm install <v>`.
+- **nvm + node versions**: bootstrap.sh prompts to install nvm (v0.40.4) then
+  optionally `nvm install --lts`. Per-project switching via `nvm use`.
+- **uv** (Astral's Python package manager): bootstrap.sh prompts to install
+  via the official `astral.sh/uv/install.sh` script (puts `uv` + `uvx` in
+  `~/.local/bin/`).
+- **GitHub Copilot CLI**: `npm install -g @github/copilot` (needs nvm-installed
+  node first; bootstrap handles ordering).
+- **Claude Code**: `claude.ai/install.sh` (puts `claude` in
+  `~/.local/share/claude/` with a symlink in `~/.local/bin/`).
 - **miniconda & conda envs**: cask in Brewfile installs miniconda; envs are
   per-project (`conda create -n NAME …`).
 

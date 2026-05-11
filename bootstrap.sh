@@ -44,7 +44,41 @@ install_vim_runtime() {
 install_nvm() {
     if [ ! -d "$HOME/.nvm" ]; then
         if ask "Install nvm (Node Version Manager)?"; then
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+            # Load nvm into the current shell so subsequent installers (npm) work
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            if ask "Install latest LTS Node now?"; then
+                nvm install --lts
+            fi
+        fi
+    fi
+}
+
+install_uv() {
+    if ! have uv; then
+        if ask "Install uv (Astral's Python package manager)?"; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+        fi
+    fi
+}
+
+install_copilot_cli() {
+    if ! have copilot; then
+        if have npm; then
+            if ask "Install GitHub Copilot CLI globally via npm?"; then
+                npm install -g @github/copilot
+            fi
+        else
+            echo "(skipping Copilot CLI — npm not on PATH; install nvm + node first)"
+        fi
+    fi
+}
+
+install_claude_code() {
+    if ! have claude; then
+        if ask "Install Claude Code?"; then
+            curl -fsSL https://claude.ai/install.sh | bash
         fi
     fi
 }
@@ -90,7 +124,10 @@ doIt() {
     # 5) Tools brew can't install
     install_oh_my_zsh
     install_vim_runtime
-    install_nvm
+    install_nvm           # node version manager (loads nvm into current shell)
+    install_uv            # Astral's Python package manager
+    install_copilot_cli   # GitHub Copilot CLI (needs npm; nvm-installed node provides it)
+    install_claude_code   # Claude Code
     install_miniconda_note
 
     # 6) Reload login shell
