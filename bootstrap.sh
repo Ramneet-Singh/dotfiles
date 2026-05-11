@@ -26,12 +26,9 @@ install_oh_my_zsh() {
         RUNZSH=no KEEP_ZSHRC=yes \
             sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
-    # Custom plugins used by .zshrc's plugins=(...) list
-    local custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-    [ -d "$custom/plugins/zsh-autosuggestions" ] || \
-        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions      "$custom/plugins/zsh-autosuggestions"
-    [ -d "$custom/plugins/zsh-syntax-highlighting" ] || \
-        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting  "$custom/plugins/zsh-syntax-highlighting"
+    # Note: zsh-autosuggestions and zsh-syntax-highlighting are installed via
+    # brew (see Brewfile) and sourced directly from /opt/homebrew/share/ in
+    # .zshrc — NOT loaded as oh-my-zsh custom plugins.
 }
 
 install_vim_runtime() {

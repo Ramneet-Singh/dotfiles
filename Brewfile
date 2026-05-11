@@ -19,8 +19,8 @@ brew "wget"
 # --- Shell experience ---
 brew "fzf"                       # fuzzy finder (sourced from ~/.fzf.zsh)
 brew "powerlevel10k"             # zsh prompt theme (sourced by .zshrc)
-brew "zsh-syntax-highlighting"   # loaded as oh-my-zsh custom plugin
-brew "zsh-autosuggestions"       # loaded as oh-my-zsh custom plugin
+brew "zsh-syntax-highlighting"   # sourced from /opt/homebrew/share in .zshrc
+brew "zsh-autosuggestions"       # sourced from /opt/homebrew/share in .zshrc
 
 # --- Editors ---
 brew "macvim"

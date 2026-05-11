@@ -15,8 +15,15 @@ unset file
 # --- oh-my-zsh ---
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
-plugins=(git colored-man-pages zsh-syntax-highlighting zsh-autosuggestions brew macos)
+plugins=(git colored-man-pages brew macos)
 [ -f "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+
+# --- zsh-autosuggestions (brew install; source after oh-my-zsh) ---
+if [ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+elif [ -f /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 # --- Powerlevel10k theme: prefer brew install, fall back to local clone ---
 if [ -f /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme ]; then
@@ -51,3 +58,10 @@ export NVM_DIR="$HOME/.nvm"
 
 # --- ~/.local/bin/env (managed by `uv` / `rustup-init` etc., guarded) ---
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+# --- zsh-syntax-highlighting (brew install) — MUST be sourced last ---
+if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+    source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif [ -f /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+    source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi

@@ -72,9 +72,10 @@ dotfiles/
 - **vim plugins**: separate fork at
   [Ramneet-Singh/vimrc](https://github.com/Ramneet-Singh/vimrc) — bootstrap
   clones it into `~/.vim_runtime/`. `.vimrc` here just sources from there.
-- **oh-my-zsh + plugins**: installed by `bootstrap.sh` (its own installer +
-  git-cloned `zsh-autosuggestions` & `zsh-syntax-highlighting` into
-  `~/.oh-my-zsh/custom/plugins/`).
+- **oh-my-zsh**: installed by `bootstrap.sh` (its own installer).
+  `zsh-autosuggestions` and `zsh-syntax-highlighting` are installed via brew
+  (see Brewfile) and sourced directly from `/opt/homebrew/share/` in
+  `.zshrc` — NOT loaded as oh-my-zsh custom plugins, so brew handles updates.
 - **nvm + node versions**: bootstrap.sh prompts to install nvm (v0.40.4) then
   optionally `nvm install --lts`. Per-project switching via `nvm use`.
 - **uv** (Astral's Python package manager): bootstrap.sh prompts to install
