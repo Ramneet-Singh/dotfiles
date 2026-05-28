@@ -101,15 +101,20 @@ dotfiles/
 
 Skills are installed via [`npx skills`](https://github.com/vercel-labs/skills)
 (the vercel-labs CLI). Most coding agents (Copilot CLI, Codex, Cursor, Cline,
-…) read from `~/.agents/skills/`; Claude Code reads from `~/.claude/skills/`.
+…) read from `~/.agents/skills/`; Claude Code reads from `~/.claude/skills/`;
+Pi reads from `~/.pi/agent/skills/`. The current install targets are
+**claude-code, codex, github-copilot, and pi** — pass
+`-a claude-code -a codex -a github-copilot -a pi` to `npx skills add` to match.
 
-To make the dotfiles repo the **single source of truth** for both — and to get
-edits flowing in both directions automatically — `bootstrap.sh` symlinks:
+To make the dotfiles repo the **single source of truth** for all of them —
+and to get edits flowing in both directions automatically — `bootstrap.sh`
+symlinks:
 
 ```
-~/.agents/skills           → $DOTFILES/.agents/skills           (whole tree)
-~/.agents/.skill-lock.json → $DOTFILES/.agents/.skill-lock.json
-~/.claude/skills/<name>    → ../../.agents/skills/<name>        (per skill — same scheme `npx skills` uses for symlink installs)
+~/.agents/skills            → $DOTFILES/.agents/skills           (whole tree)
+~/.agents/.skill-lock.json  → $DOTFILES/.agents/.skill-lock.json
+~/.claude/skills/<name>     → ../../.agents/skills/<name>        (per skill)
+~/.pi/agent/skills/<name>   → ../../../.agents/skills/<name>     (per skill)
 ```
 
 So the workflow is:

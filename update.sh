@@ -80,6 +80,16 @@ update_claude_code() {
     fi
 }
 
+update_skills() {
+    # `npx skills update` writes through the ~/.agents/skills symlink into the
+    # repo's .agents/ tree, so the resulting diff is committed back to dotfiles.
+    # Needs npx (provided by nvm-installed node).
+    if have npx; then
+        echo "==> Updating AI agent skills…"
+        npx -y skills update -g -y || true
+    fi
+}
+
 do_update() {
     # 1) Pull latest dotfiles (so we get any new Brewfile entries / configs)
     if [ -d .git ]; then
@@ -98,6 +108,7 @@ do_update() {
     update_uv
     update_copilot_cli
     update_claude_code
+    update_skills
 
     # 4) Resync dotfiles into $HOME (bootstrap.sh handles rsync + ensures any
     #    newly-added install_* tools get installed). DOTFILES_NO_RELOAD=1 stops

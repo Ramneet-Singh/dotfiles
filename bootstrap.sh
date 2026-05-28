@@ -92,15 +92,17 @@ install_miniconda_note() {
 
 # Symlink ~/.agents/{skills,.skill-lock.json} → repo so the dotfiles repo IS
 # the source of truth, and `npx skills add/update/remove` writes through to
-# the repo. Also recreates ~/.claude/skills/<name> symlinks (claude code reads
-# from .claude, every other agent reads from .agents). Idempotent — safe to
-# re-run; backs up any pre-existing real dirs/files instead of clobbering.
+# the repo. Then recreate per-agent symlinks for agents that don't read
+# from ~/.agents/skills directly (currently Claude Code and Pi). The
+# "universal" agents — Codex, GitHub Copilot, Cursor, Cline, etc. — read
+# from ~/.agents/skills/ via the top-level symlink, so they need no extras.
+# Idempotent — safe to re-run; backs up pre-existing real dirs/files.
 install_skills() {
     local repo_skills="$PWD/.agents/skills"
     local repo_lock="$PWD/.agents/.skill-lock.json"
     [ -d "$repo_skills" ] || return 0   # nothing tracked yet
 
-    mkdir -p "$HOME/.agents" "$HOME/.claude/skills"
+    mkdir -p "$HOME/.agents" "$HOME/.claude/skills" "$HOME/.pi/agent/skills"
 
     # ~/.agents/skills → repo
     if [ -e "$HOME/.agents/skills" ] && [ ! -L "$HOME/.agents/skills" ]; then
@@ -118,13 +120,15 @@ install_skills() {
         ln -snf "$repo_lock" "$HOME/.agents/.skill-lock.json"
     fi
 
-    # ~/.claude/skills/<name> → ../../.agents/skills/<name>
-    # (matches what `npx skills` creates when claude-code is one of the targets)
+    # Per-agent symlinks (mirrors what `npx skills add -a <agent>` creates):
+    #   ~/.claude/skills/<name>      → ../../.agents/skills/<name>
+    #   ~/.pi/agent/skills/<name>    → ../../../.agents/skills/<name>
     local skill_dir name
     for skill_dir in "$repo_skills"/*/; do
         [ -d "$skill_dir" ] || continue
         name=$(basename "$skill_dir")
         ln -snf "../../.agents/skills/$name" "$HOME/.claude/skills/$name"
+        ln -snf "../../../.agents/skills/$name" "$HOME/.pi/agent/skills/$name"
     done
 }
 
