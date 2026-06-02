@@ -5,8 +5,8 @@
 # Run AFTER `./brew.sh`. Idempotent — safe to re-run.
 #
 # Usage:
-#   source bootstrap.sh         # interactive (asks before touching $HOME)
-#   source bootstrap.sh -f      # skip confirmation prompt
+#   bash bootstrap.sh           # interactive (asks before touching $HOME)
+#   bash bootstrap.sh -f        # skip confirmation prompt
 
 set -e
 cd "$(dirname "${BASH_SOURCE}")"

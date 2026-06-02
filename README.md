@@ -22,7 +22,7 @@ cd ~/dotfiles
 
 # 4) Copy dotfiles into $HOME, install oh-my-zsh + plugins, clone vim_runtime fork,
 #    optionally install nvm. Re-execs zsh at the end.
-source bootstrap.sh
+bash bootstrap.sh
 
 # 5) Fill in your real git identity & secrets
 $EDITOR ~/.extra
@@ -134,7 +134,7 @@ revert a tweak back to the upstream version, delete it from the repo and run
 
 **Recovery:** if `~/.agents/.skill-lock.json` ever ends up as a regular file
 instead of a symlink (some tools do atomic write-temp-then-rename), re-run
-`./bootstrap.sh -f` — `install_skills` is idempotent and re-asserts the
+`bash bootstrap.sh -f` — `install_skills` is idempotent and re-asserts the
 symlinks. Same one-liner manually:
 `ln -snf $PWD/.agents/.skill-lock.json ~/.agents/.skill-lock.json`.
 
