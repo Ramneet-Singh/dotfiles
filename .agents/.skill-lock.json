@@ -106,10 +106,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/engineering/to-prd/SKILL.md",
-      "skillFolderHash": "d6eff3e99a325d2d9c2acbe31b4d76fa5340a154",
-      "pluginName": "mattpocock-skills",
+      "skillFolderHash": "fb4503f54bc618da08df2fd74109fbe57e4d8150",
       "installedAt": "2026-05-11T14:05:58.218Z",
-      "updatedAt": "2026-05-28T22:29:16.120Z"
+      "updatedAt": "2026-06-15T12:23:23.508Z"
     },
     "triage": {
       "source": "mattpocock/skills",
@@ -185,6 +184,16 @@
       "skillFolderHash": "d9c8935dd560b3b6f5941247d04a1843f8c7cc35",
       "installedAt": "2026-05-28T22:25:06.113Z",
       "updatedAt": "2026-05-28T22:27:48.022Z"
+    },
+    "teach": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/teach/SKILL.md",
+      "skillFolderHash": "975430f7801bac2258ed18f4d80860024443b4f7",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-06-15T12:23:42.355Z",
+      "updatedAt": "2026-06-15T12:23:42.355Z"
     }
   },
   "dismissed": {
