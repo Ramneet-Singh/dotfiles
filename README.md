@@ -48,8 +48,9 @@ order:
    - **uv** via `uv self update`
    - **GitHub Copilot CLI** via `npm install -g @github/copilot@latest`
    - **Claude Code** by re-running `claude.ai/install.sh`
-   - **AI agent skills** via `npx skills update` (writes through the symlinks
-     into `.agents/`; commit the resulting diff to persist)
+   - **AI agent skills** via `npx skills update`, then a `npx skills add
+     <source> --skill '*'` resync per third-party source (writes through the
+     symlinks into `.agents/`; commit the resulting diff to persist)
 4. `source bootstrap.sh -f` (with `DOTFILES_NO_RELOAD=1`) — rsyncs the latest
    dotfiles into `$HOME`/`~/.config/` and runs the `install_*` helpers (a no-op
    for already-installed tools, but picks up anything new that's been added to
@@ -100,11 +101,23 @@ dotfiles/
 ## AI agent skills
 
 Skills are installed via [`npx skills`](https://github.com/vercel-labs/skills)
-(the vercel-labs CLI). Most coding agents (Copilot CLI, Codex, Cursor, Cline,
-…) read from `~/.agents/skills/`; Claude Code reads from `~/.claude/skills/`;
-Pi reads from `~/.pi/agent/skills/`. The current install targets are
-**claude-code, codex, github-copilot, and pi** — pass
-`-a claude-code -a codex -a github-copilot -a pi` to `npx skills add` to match.
+(the vercel-labs CLI). Most coding agents (Copilot CLI, Codex, Cursor, OpenCode,
+Cline, …) read from `~/.agents/skills/`; Claude Code reads from
+`~/.claude/skills/`; Pi reads from `~/.pi/agent/skills/`. The current install
+targets are **claude-code, codex, github-copilot, pi, opencode, and cursor** —
+pass `-a claude-code -a codex -a github-copilot -a pi -a opencode -a cursor` to
+`npx skills add` to match (also kept in `SKILL_AGENTS` in `update.sh`).
+
+`cursor` covers both the Cursor IDE and the Cursor CLI. There is no `cursor-cli`
+install target — that name exists only in the CLI's agent *detection* map, which
+folds it into `cursor`, and passing it to `-a` is rejected as invalid.
+
+Skills come from two sources, both recorded per-skill in `.skill-lock.json`:
+
+| Source                  | What                                                                    |
+|-------------------------|-------------------------------------------------------------------------|
+| `Ramneet-Singh/dotfiles`| This repo's own skills — `ruff`, `ty`, `uv`, `find-skills`, `thermo-nuclear-code-quality-review`. No upstream exists; edit them here. |
+| `mattpocock/skills`     | [Matt Pocock's set](https://github.com/mattpocock/skills), vendored into `.agents/skills/` by the write-through symlink. Don't hand-edit — see below. |
 
 To make the dotfiles repo the **single source of truth** for all of them —
 and to get edits flowing in both directions automatically — `bootstrap.sh`
@@ -124,13 +137,27 @@ So the workflow is:
 | Edit `dotfiles/.agents/skills/X/SKILL.md`    | Instantly visible to every agent. `git add && git commit` to persist.                     |
 | `npx skills add <repo>`                      | Writes through the symlinks → new files land in `dotfiles/.agents/`. Commit the diff.     |
 | `npx skills update [name]`                   | Same — diff appears in `dotfiles/.agents/`. Commit to share across machines.              |
-| `npx skills remove <name>`                   | Same — deletion appears in `dotfiles/.agents/`. Commit.                                   |
+| `npx skills remove <name>`                   | Same — deletion appears in `dotfiles/.agents/`. Commit. (`-a '*'` is rejected here — list the agents.) |
 | Fresh Mac (`bootstrap.sh`)                   | Re-creates the three symlink groups above pointing at the freshly-cloned repo.            |
 
-Personal tweaks to upstream skills are just commits in `dotfiles/.agents/`. To
-revert a tweak back to the upstream version, delete it from the repo and run
-`npx skills update <name>` (it'll re-fetch from the source recorded in
-`.skill-lock.json`).
+**`update` is not enough on its own.** It only refreshes skills already in
+`.skill-lock.json` — it will not pull in a skill newly published to a source,
+and will not create the per-agent symlinks for one. To fully sync a source,
+re-add it: `npx skills add <source> -g <agent flags> --skill '*' -y`.
+`update.sh` does exactly this, for every third-party source in the lock.
+
+**Never `npx skills add Ramneet-Singh/dotfiles --skill '*'`.** Because this repo
+*is* the store, every vendored upstream skill also lives under this repo's path
+— so re-adding it as a source rewrites each skill's `source` to point back at
+dotfiles, cutting them off from their real upstream. `update.sh`'s
+`skill_sources` filters it out for this reason. The repo's own five skills need
+no re-fetch; they're edited in place.
+
+Personal tweaks to upstream skills are just commits in `dotfiles/.agents/`, but
+they're fragile: `npx skills update` re-fetches from the source in
+`.skill-lock.json` and will overwrite them. Prefer sending the change upstream.
+To deliberately revert a tweak, delete the skill from the repo and run
+`npx skills update <name>`.
 
 **Recovery:** if `~/.agents/.skill-lock.json` ever ends up as a regular file
 instead of a symlink (some tools do atomic write-temp-then-rename), re-run

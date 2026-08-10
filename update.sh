@@ -80,14 +80,51 @@ update_claude_code() {
     fi
 }
 
+# Agents that skills get installed for. The "universal" ones (codex,
+# github-copilot, opencode, cursor) read ~/.agents/skills directly; claude-code
+# and pi need per-skill symlinks. `cursor` covers both the Cursor IDE and the
+# Cursor CLI — `cursor-cli` is NOT a valid target, it exists only in the CLI's
+# agent *detection* map and is folded into `cursor`.
+SKILL_AGENTS=(claude-code codex github-copilot pi opencode cursor)
+
+# Distinct third-party sources recorded in the skill lock, so adding a new
+# source needs no edit here. Ramneet-Singh/dotfiles is deliberately excluded:
+# this repo IS the store, so re-adding it as a source with --skill '*' would
+# re-point every vendored skill's `source` back at dotfiles and cut them off
+# from their real upstream.
+skill_sources() {
+    local lock="$PWD/.agents/.skill-lock.json"
+    [ -f "$lock" ] || return 0
+    python3 - "$lock" <<'PY' 2>/dev/null || true
+import json, sys
+with open(sys.argv[1]) as f:
+    lock = json.load(f)
+sources = {s.get("source") for s in lock["skills"].values() if s.get("source")}
+print("\n".join(sorted(sources - {"Ramneet-Singh/dotfiles"})))
+PY
+}
+
 update_skills() {
-    # `npx skills update` writes through the ~/.agents/skills symlink into the
-    # repo's .agents/ tree, so the resulting diff is committed back to dotfiles.
+    # `npx skills` writes through the ~/.agents/skills symlink into the repo's
+    # .agents/ tree, so the resulting diff is committed back to dotfiles.
     # Needs npx (provided by nvm-installed node).
-    if have npx; then
-        echo "==> Updating AI agent skills…"
-        npx -y skills update -g -y || true
-    fi
+    have npx || return 0
+    echo "==> Updating AI agent skills…"
+
+    # 1) Refresh the content of skills already in the lock.
+    npx -y skills update -g -y || true
+
+    # 2) `update` only touches what's already in the lock — it never picks up
+    #    skills newly published to a source, and never creates the per-agent
+    #    symlinks for them. Re-adding each source with --skill '*' does both.
+    local agent_args=() a src
+    for a in "${SKILL_AGENTS[@]}"; do
+        agent_args+=(-a "$a")
+    done
+    for src in $(skill_sources); do
+        echo "    → resyncing $src"
+        npx -y skills add "$src" -g "${agent_args[@]}" --skill '*' -y || true
+    done
 }
 
 do_update() {
